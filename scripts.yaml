@@ -1,0 +1,128 @@
+
+ev9_get_ready:
+  alias: EV9 Get Ready
+  sequence:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.ev9_climate
+    - delay: "00:00:05"
+    - service: button.press
+      target:
+        entity_id: button.ev9_force_refresh
+
+ev9_climate_on:
+  alias: EV9 Climate On
+  sequence:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.ev9_climate
+
+ev9_climate_off:
+  alias: EV9 Climate Off
+  sequence:
+    - service: switch.turn_off
+      target:
+        entity_id: switch.ev9_climate
+
+ev9_lock:
+  alias: EV9 Lock
+  sequence:
+    - service: lock.lock
+      target:
+        entity_id: lock.ev9_door_lock
+
+ev9_unlock:
+  alias: EV9 Unlock
+  sequence:
+    - service: lock.unlock
+      target:
+        entity_id: lock.ev9_door_lock
+
+ev9_refresh:
+  alias: EV9 Refresh
+  sequence:
+    - service: button.press
+      target:
+        entity_id: button.ev9_force_refresh
+
+ev9_start_charging:
+  alias: EV9 Start Charging
+  sequence:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.ev9_ev_charging
+
+ev9_stop_charging:
+  alias: EV9 Stop Charging
+  sequence:
+    - service: switch.turn_off
+      target:
+        entity_id: switch.ev9_ev_charging
+
+ev9_find_vehicle:
+  alias: EV9 Find Vehicle
+  sequence:
+    - service: button.press
+      target:
+        entity_id: button.ev9_start_hazard_lights_and_horn
+
+ev9_flash_lights:
+  alias: EV9 Flash Lights
+  sequence:
+    - service: button.press
+      target:
+        entity_id: button.ev9_start_hazard_lights
+
+ev9_charge_to_80:
+  alias: EV9 Charge To 80
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.ev9_ac_charging_limit
+      data:
+        value: 80
+
+ev9_charge_to_100:
+  alias: EV9 Charge To 100
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.ev9_ac_charging_limit
+      data:
+        value: 100
+
+ev9_safe_action:
+  alias: "EV9: Safe Action Wrapper"
+  mode: parallel
+  max: 10
+  fields:
+    target_action:
+      description: "The action to perform (e.g., lock.unlock, button.press, switch.toggle)"
+      example: "lock.unlock"
+      required: true
+      selector:
+        text:
+    target_entity:
+      description: "The entity ID to target"
+      example: "lock.ev9_door_lock"
+      required: true
+      selector:
+        entity:
+    action_data:
+      description: "Optional dictionary of parameters (e.g., temperature: 72)"
+      default: {}
+  sequence:
+    - action: "{{ target_action }}"
+      target:
+        entity_id: "{{ target_entity }}"
+      data: "{{ action_data | default({}, true) }}"
+      continue_on_error: true
+
+    - delay:
+        milliseconds: 900
+
+    - action: "{{ target_action }}"
+      target:
+        entity_id: "{{ target_entity }}"
+      data: "{{ action_data | default({}, true) }}"
+      continue_on_error: true
