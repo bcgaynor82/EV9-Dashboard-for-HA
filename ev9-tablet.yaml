@@ -1,8 +1,5 @@
 type: vertical-stack
 cards:
-  # =========================================================================
-  # 1A. TOP BAR (MATCHED HEIGHT AUTO-TRUNCATING CITY/STATE PILL + REFRESH)
-  # =========================================================================
   - type: grid
     columns: 2
     square: false
@@ -175,17 +172,10 @@ cards:
                   </div>
                 </div>`;
             ]]]
-
-  # =========================================================================
-  # 2. TABLET WIDESCREEN 2-COLUMN COCKPIT GRID
-  # =========================================================================
   - type: grid
     columns: 2
     square: false
     cards:
-      # -----------------------------------------------------------------------
-      # LEFT COLUMN: ENLARGED MIRRORED HERO STAGE, QUICK ACTIONS & CLIMATE
-      # -----------------------------------------------------------------------
       - type: vertical-stack
         cards:
           - type: custom:button-card
@@ -309,7 +299,7 @@ cards:
                           action: none
                         styles:
                           card:
-                            - background: linear-gradient(160deg, #111c2b 0%, #070b11 100%)
+                            - background: linear-gradient(160deg,
                             - border: 1px solid rgba(255, 255, 255, 0.08)
                             - border-radius: 18px
                             - padding: 14px 18px
@@ -328,7 +318,7 @@ cards:
                               const S = e => states[e]?.state;
                               const num = e => Number(S(e));
                               const on = e => S(e) === 'on';
-                              const soc = isFinite(num('sensor.ev9_ev_battery_level')) ? Math.min(100, Math.max(1, Math.round(num('sensor.ev9_ev_battery_level')))) : 33;
+                              const soc = isFinite(num('sensor.ev9_ev_battery_level')) ? Math.min(100, Math.max(0, Math.round(num('sensor.ev9_ev_battery_level')))) : 33;
                               const rng = isFinite(num('sensor.ev9_ev_range')) ? Math.max(0, Math.round(num('sensor.ev9_ev_range'))) : 106;
                               const chg = on('binary_sensor.ev9_ev_battery_charge');
                               const kw = num('sensor.ev9_ev_charging_power');
@@ -369,7 +359,7 @@ cards:
                           action: none
                         styles:
                           card:
-                            - background: linear-gradient(160deg, #111c2b 0%, #070b11 100%)
+                            - background: linear-gradient(160deg,
                             - border: 1px solid rgba(255, 255, 255, 0.08)
                             - border-radius: 18px
                             - padding: 14px 18px
@@ -392,33 +382,29 @@ cards:
                                 const d = new Date(s);
                                 if (isNaN(d)) return s && s !== 'unknown' ? s : '—';
                                 const m = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
-                                return m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.floor(m / 60) + 'h ago' : Math.floor(m / 1440) + 'd ago';
+                                if (m < 1) return 'just now';
+                                if (m < 60) return m + 'm ago';
+                                if (m < 1440) return Math.floor(m / 60) + 'h ago';
+                                return Math.floor(m / 1440) + 'd ago';
                               };
-                              const tile = (cap, val, sub, accent, warn) => `
-                                <div style="background:rgba(255,255,255,0.03);border:1px solid ${warn ? 'rgba(244,63,94,0.45)' : 'rgba(255,255,255,0.06)'};border-radius:12px;padding:9px 6px;box-sizing:border-box;min-width:0;text-align:center;">
-                                  <div style="font-size:8px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#78889b;">${cap}</div>
-                                  <div style="font-size:14.5px;font-weight:900;color:${warn ? '#f43f5e' : accent};margin-top:3px;line-height:1.15;">${val}</div>
-                                  <div style="font-size:8.5px;font-weight:600;color:#94a3b8;margin-top:2px;">${sub}</div>
-                                </div>`;
+                              const tile = (cap, val, sub, accent, warn) => {
+                                const bdr = warn ? 'rgba(244,63,94,0.45)' : 'rgba(255,255,255,0.06)';
+                                const col = warn ? '#f43f5e' : accent;
+                                return '<div style="background:rgba(255,255,255,0.03);border:1px solid ' + bdr + ';border-radius:12px;padding:9px 6px;box-sizing:border-box;min-width:0;text-align:center;"><div style="font-size:8px;font-weight:800;letter-spacing:0.06em;text-transform:uppercase;color:#78889b;">' + cap + '</div><div style="font-size:14.5px;font-weight:900;color:' + col + ';margin-top:3px;line-height:1.15;">' + val + '</div><div style="font-size:8.5px;font-weight:600;color:#94a3b8;margin-top:2px;">' + sub + '</div></div>';
+                              };
                               const dtc = n('sensor.ev9_dtc_count');
                               const odo = ok('sensor.ev9_odometer') ? Math.round(n('sensor.ev9_odometer')).toLocaleString() : '3,076';
                               const aux = ok('sensor.ev9_car_battery_level') ? Math.round(n('sensor.ev9_car_battery_level')) : 86;
                               const soh = ok('sensor.ev9_ev_state_of_health_battery') ? Math.round(n('sensor.ev9_ev_state_of_health_battery')) : 100;
                               const svc = ok('sensor.ev9_next_service') ? (isFinite(n('sensor.ev9_next_service')) ? Math.round(n('sensor.ev9_next_service')).toLocaleString() + ' mi' : S('sensor.ev9_next_service').state) : '12,924 mi';
                               const sync = ok('sensor.ev9_last_updated_at') ? ago(S('sensor.ev9_last_updated_at').state) : 'Just now';
-                              return `
-                                <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;box-sizing:border-box;width:100%;padding:0 8px;">
-                                  <div style="font-size:10px;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#38bdf8;margin-bottom:10px;">VEHICLE VITALS</div>
-                                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
-                                    ${tile('ODOMETER', odo + ' mi', 'Cumulative', '#ffffff', false)}
-                                    ${tile('12V AUX', aux + '%', aux < 65 ? 'Check' : 'Nominal', aux < 65 ? '#fbbf24' : '#22c55e', aux < 55)}
-                                    ${tile('PACK SOH', soh + '%', 'Battery Health', '#38bdf8', false)}
-                                    ${tile('SERVICE', svc, 'Upcoming', '#ffffff', false)}
-                                    ${tile('DTC CODES', isFinite(dtc) ? dtc : '0', dtc > 0 ? 'Active Fault' : 'Clear', dtc > 0 ? '#f43f5e' : '#22c55e', dtc > 0)}
-                                    ${tile('SYNC', sync, 'Telemetry', '#c084fc', false)}
-                                  </div>
-                                </div>`;
-                            }]]]
+                              const dtcVal = isFinite(dtc) ? String(dtc) : '0';
+                              const dtcSub = dtc > 0 ? 'Active Fault' : 'Clear';
+                              const dtcCol = dtc > 0 ? '#f43f5e' : '#22c55e';
+                              const auxSub = aux < 65 ? 'Check' : 'Nominal';
+                              const auxCol = aux < 65 ? '#fbbf24' : '#22c55e';
+                              return '<div style="font-family:-apple-system,BlinkMacSystemFont,\'Segoe UI\',Roboto,sans-serif;box-sizing:border-box;width:100%;padding:0 8px;"><div style="font-size:10px;font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:#38bdf8;margin-bottom:10px;">VEHICLE VITALS</div><div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">' + tile('ODOMETER', odo + ' mi', 'Cumulative', '#ffffff', false) + tile('12V AUX', aux + '%', auxSub, auxCol, aux < 55) + tile('PACK SOH', soh + '%', 'Battery Health', '#38bdf8', false) + tile('SERVICE', svc, 'Upcoming', '#ffffff', false) + tile('DTC CODES', dtcVal, dtcSub, dtcCol, dtc > 0) + tile('SYNC', sync, 'Telemetry', '#c084fc', false) + '</div></div>';
+                            ]]]
                       - type: custom:button-card
                         entity: lock.ev9_door_lock
                         triggers_update:
@@ -436,7 +422,7 @@ cards:
                           action: none
                         styles:
                           card:
-                            - background: linear-gradient(160deg, #111c2b 0%, #070b11 100%)
+                            - background: linear-gradient(160deg,
                             - border: 1px solid rgba(255, 255, 255, 0.08)
                             - border-radius: 18px
                             - padding: 14px 18px
@@ -486,7 +472,7 @@ cards:
                             ]]]
             styles:
               card:
-                - background: radial-gradient(ellipse at 50% 12%, #182e46 0%, #0a111a 62%, #040609 100%)
+                - background: radial-gradient(ellipse at 50% 12%,
                 - border-radius: 22px
                 - border: 1px solid rgba(255, 255, 255, 0.09)
                 - box-shadow: 0 18px 40px rgba(0, 0, 0, 0.75)
@@ -668,7 +654,7 @@ cards:
                         <div style="position:absolute;bottom:4px;width:78%;height:1px;background:linear-gradient(90deg,transparent,${statusCol},transparent);opacity:0.65;z-index:1;"></div>
                         ${heroThermalFx}
                         ${cable}
-                        <div style="position:relative;z-index:2;width:98%;max-width:580px;">
+                        <div style="position:relative;z-index:2;width:98%;max-width:580px;pointer-events:none;">
                           <img src="/local/ev9/hero.png" style="width:100%;height:auto;display:block;filter:drop-shadow(0 22px 30px rgba(0,0,0,0.94)) ${climOn ? `drop-shadow(0 0 16px ${thermalCol}66)` : ''};transform:scale(1.10);transition:filter 0.35s ease;" />
                         </div>
                       </div>
@@ -707,33 +693,48 @@ cards:
                               @keyframes barTravel { 0% { left: -28%; opacity: 0.25; } 50% { opacity: 1; } 100% { left: 100%; opacity: 0.25; } }
                     </style>`;
                 ]]]
-
           - type: grid
             columns: 3
             square: false
             cards:
               - type: custom:button-card
                 entity: lock.ev9_door_lock
-                name: "[[[ return entity.state === 'locked' ? 'Locked' : 'Unlocked'; ]]]"
-                icon: "[[[ return entity.state === 'locked' ? 'mdi:lock' : 'mdi:lock-open-variant'; ]]]"
+                name: >-
+                  [[[ return entity.state === 'locked' ? 'Locked' : 'Unlocked';
+                  ]]]
+                icon: >-
+                  [[[ return entity.state === 'locked' ? 'mdi:lock' :
+                  'mdi:lock-open-variant'; ]]]
                 tap_action:
                   action: toggle
                   confirmation:
-                    text: "[[[ return entity.state === 'locked' ? 'Unlock EV9 doors?' : 'Lock EV9 doors?'; ]]]"
+                    text: >-
+                      [[[ return entity.state === 'locked' ? 'Unlock EV9 doors?'
+                      : 'Lock EV9 doors?'; ]]]
                 styles:
                   card:
-                    - background: "[[[ return entity.state === 'locked' ? 'linear-gradient(160deg,rgba(34,197,94,0.12) 0%,rgba(255,255,255,0.03) 100%)' : 'linear-gradient(160deg,rgba(251,191,36,0.14) 0%,rgba(255,255,255,0.03) 100%)'; ]]]"
+                    - background: >-
+                        [[[ return entity.state === 'locked' ?
+                        'linear-gradient(160deg,rgba(34,197,94,0.12)
+                        0%,rgba(255,255,255,0.03) 100%)' :
+                        'linear-gradient(160deg,rgba(251,191,36,0.14)
+                        0%,rgba(255,255,255,0.03) 100%)'; ]]]
                     - border-radius: 16px
-                    - border: "[[[ return entity.state === 'locked' ? '1px solid rgba(34,197,94,0.32)' : '1px solid rgba(251,191,36,0.4)'; ]]]"
+                    - border: >-
+                        [[[ return entity.state === 'locked' ? '1px solid
+                        rgba(34,197,94,0.32)' : '1px solid
+                        rgba(251,191,36,0.4)'; ]]]
                     - padding: 11px 8px
                     - cursor: pointer
                   icon:
-                    - color: "[[[ return entity.state === 'locked' ? '#22c55e' : '#fbbf24'; ]]]"
+                    - color: >-
+                        [[[ return entity.state === 'locked' ? '#22c55e' :
+                        '#fbbf24'; ]]]
                     - width: 22px
                   name:
                     - font-size: 11px
                     - font-weight: 800
-                    - color: "#e2e8f0"
+                    - color: '#e2e8f0'
                     - margin-top: 3px
               - type: custom:button-card
                 entity: button.ev9_start_hazard_lights
@@ -747,18 +748,20 @@ cards:
                     target_entity: button.ev9_start_hazard_lights
                 styles:
                   card:
-                    - background: linear-gradient(160deg, rgba(251, 191, 36, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%)
+                    - background: >-
+                        linear-gradient(160deg, rgba(251, 191, 36, 0.1) 0%,
+                        rgba(255, 255, 255, 0.03) 100%)
                     - border-radius: 16px
                     - border: 1px solid rgba(251, 191, 36, 0.25)
                     - padding: 11px 8px
                     - cursor: pointer
                   icon:
-                    - color: "#fbbf24"
+                    - color: '#fbbf24'
                     - width: 22px
                   name:
                     - font-size: 11px
                     - font-weight: 800
-                    - color: "#e2e8f0"
+                    - color: '#e2e8f0'
                     - margin-top: 3px
               - type: custom:button-card
                 entity: device_tracker.ev9_location
@@ -779,20 +782,21 @@ cards:
                         default_zoom: 15
                 styles:
                   card:
-                    - background: linear-gradient(160deg, rgba(56, 189, 248, 0.12) 0%, rgba(255, 255, 255, 0.03) 100%)
+                    - background: >-
+                        linear-gradient(160deg, rgba(56, 189, 248, 0.12) 0%,
+                        rgba(255, 255, 255, 0.03) 100%)
                     - border-radius: 16px
                     - border: 1px solid rgba(56, 189, 248, 0.28)
                     - padding: 11px 8px
                     - cursor: pointer
                   icon:
-                    - color: "#38bdf8"
+                    - color: '#38bdf8'
                     - width: 22px
                   name:
                     - font-size: 11px
                     - font-weight: 800
-                    - color: "#e2e8f0"
+                    - color: '#e2e8f0'
                     - margin-top: 3px
-
           - type: vertical-stack
             cards:
               - type: custom:button-card
@@ -960,10 +964,10 @@ cards:
                       name:
                         - font-size: 10.5px
                         - font-weight: 800
-                        - color: "#38bdf8"
+                        - color: '#38bdf8'
                       label:
                         - font-size: 9.5px
-                        - color: "#94a3b8"
+                        - color: '#94a3b8'
                   - type: custom:button-card
                     entity: climate.ev9_climate_control
                     name: Warm
@@ -990,10 +994,10 @@ cards:
                       name:
                         - font-size: 10.5px
                         - font-weight: 800
-                        - color: "#ff7b29"
+                        - color: '#ff7b29'
                       label:
                         - font-size: 9.5px
-                        - color: "#94a3b8"
+                        - color: '#94a3b8'
                   - type: custom:button-card
                     entity: climate.ev9_climate_control
                     icon: mdi:minus
@@ -1005,7 +1009,9 @@ cards:
                         target_action: climate.set_temperature
                         target_entity: climate.ev9_climate_control
                         action_data:
-                          temperature: "[[[ return Number(entity.attributes?.temperature || 72) - 1; ]]]"
+                          temperature: >-
+                            [[[ return Number(entity.attributes?.temperature ||
+                            72) - 1; ]]]
                     styles:
                       card:
                         - background: rgba(255, 255, 255, 0.025)
@@ -1015,7 +1021,7 @@ cards:
                         - padding: 10px 6px
                         - cursor: pointer
                       icon:
-                        - color: "#e2e8f0"
+                        - color: '#e2e8f0'
                         - width: 20px
                   - type: custom:button-card
                     entity: climate.ev9_climate_control
@@ -1028,7 +1034,9 @@ cards:
                         target_action: climate.set_temperature
                         target_entity: climate.ev9_climate_control
                         action_data:
-                          temperature: "[[[ return Number(entity.attributes?.temperature || 72) + 1; ]]]"
+                          temperature: >-
+                            [[[ return Number(entity.attributes?.temperature ||
+                            72) + 1; ]]]
                     styles:
                       card:
                         - background: rgba(255, 255, 255, 0.025)
@@ -1038,12 +1046,8 @@ cards:
                         - padding: 10px 6px
                         - cursor: pointer
                       icon:
-                        - color: "#e2e8f0"
+                        - color: '#e2e8f0'
                         - width: 20px
-
-      # -----------------------------------------------------------------------
-      # RIGHT COLUMN: LIVE MAP, NACS CHARGING, INSIGHTS & DEPARTURE SCHEDULER
-      # -----------------------------------------------------------------------
       - type: vertical-stack
         cards:
           - type: map
@@ -1051,9 +1055,8 @@ cards:
               - device_tracker.ev9_location
             default_zoom: 15
             hours_to_show: 24
-            aspect_ratio: "16:9"
+            aspect_ratio: '16:9'
             dark_mode: true
-
           - type: vertical-stack
             cards:
               - type: custom:button-card
@@ -1091,9 +1094,16 @@ cards:
                               - number.ev9_dc_charging_limit
                 styles:
                   card:
-                    - background: "[[[ return entity.state === 'on' ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.22) 0%, rgba(10, 20, 25, 0.95) 100%)' : 'rgba(255, 255, 255, 0.035)'; ]]]"
+                    - background: >-
+                        [[[ return entity.state === 'on' ?
+                        'linear-gradient(135deg, rgba(34, 197, 94, 0.22) 0%,
+                        rgba(10, 20, 25, 0.95) 100%)' : 'rgba(255, 255, 255,
+                        0.035)'; ]]]
                     - border-radius: 18px 18px 0 0
-                    - border: "[[[ return entity.state === 'on' ? '1px solid rgba(34, 197, 94, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)'; ]]]"
+                    - border: >-
+                        [[[ return entity.state === 'on' ? '1px solid rgba(34,
+                        197, 94, 0.5)' : '1px solid rgba(255, 255, 255, 0.08)';
+                        ]]]
                     - border-bottom: none
                     - padding: 11px 14px
                   grid:
@@ -1149,7 +1159,10 @@ cards:
                             target_action: number.set_value
                             target_entity: number.ev9_ac_charging_limit
                             action_data:
-                              value: "[[[ return Math.max(50, Number(states['number.ev9_ac_charging_limit']?.state || 80) - 10); ]]]"
+                              value: >-
+                                [[[ return Math.max(50,
+                                Number(states['number.ev9_ac_charging_limit']?.state
+                                || 80) - 10); ]]]
                         styles:
                           card:
                             - background: rgba(56, 189, 248, 0.04)
@@ -1164,9 +1177,8 @@ cards:
                             - align-items: center
                             - justify-content: center
                           icon:
-                            - color: "#38bdf8"
+                            - color: '#38bdf8'
                             - width: 16px
-
                       - type: custom:button-card
                         entity: number.ev9_ac_charging_limit
                         triggers_update:
@@ -1207,7 +1219,6 @@ cards:
                                   </div>
                                 </div>`;
                             ]]]
-
                       - type: custom:button-card
                         icon: mdi:plus
                         show_name: false
@@ -1218,7 +1229,10 @@ cards:
                             target_action: number.set_value
                             target_entity: number.ev9_ac_charging_limit
                             action_data:
-                              value: "[[[ return Math.min(100, Number(states['number.ev9_ac_charging_limit']?.state || 80) + 10); ]]]"
+                              value: >-
+                                [[[ return Math.min(100,
+                                Number(states['number.ev9_ac_charging_limit']?.state
+                                || 80) + 10); ]]]
                         styles:
                           card:
                             - background: rgba(56, 189, 248, 0.04)
@@ -1233,9 +1247,8 @@ cards:
                             - align-items: center
                             - justify-content: center
                           icon:
-                            - color: "#38bdf8"
+                            - color: '#38bdf8'
                             - width: 16px
-
                   - type: horizontal-stack
                     cards:
                       - type: custom:button-card
@@ -1248,7 +1261,10 @@ cards:
                             target_action: number.set_value
                             target_entity: number.ev9_dc_charging_limit
                             action_data:
-                              value: "[[[ return Math.max(50, Number(states['number.ev9_dc_charging_limit']?.state || 80) - 10); ]]]"
+                              value: >-
+                                [[[ return Math.max(50,
+                                Number(states['number.ev9_dc_charging_limit']?.state
+                                || 80) - 10); ]]]
                         styles:
                           card:
                             - background: rgba(34, 197, 94, 0.04)
@@ -1264,9 +1280,8 @@ cards:
                             - align-items: center
                             - justify-content: center
                           icon:
-                            - color: "#22c55e"
+                            - color: '#22c55e'
                             - width: 16px
-
                       - type: custom:button-card
                         entity: number.ev9_dc_charging_limit
                         triggers_update:
@@ -1307,7 +1322,6 @@ cards:
                                   </div>
                                 </div>`;
                             ]]]
-
                       - type: custom:button-card
                         icon: mdi:plus
                         show_name: false
@@ -1318,7 +1332,10 @@ cards:
                             target_action: number.set_value
                             target_entity: number.ev9_dc_charging_limit
                             action_data:
-                              value: "[[[ return Math.min(100, Number(states['number.ev9_dc_charging_limit']?.state || 80) + 10); ]]]"
+                              value: >-
+                                [[[ return Math.min(100,
+                                Number(states['number.ev9_dc_charging_limit']?.state
+                                || 80) + 10); ]]]
                         styles:
                           card:
                             - background: rgba(34, 197, 94, 0.04)
@@ -1333,9 +1350,8 @@ cards:
                             - align-items: center
                             - justify-content: center
                           icon:
-                            - color: "#22c55e"
+                            - color: '#22c55e'
                             - width: 16px
-
           - type: custom:button-card
             entity: sensor.ev9_ev_battery_level
             triggers_update:
@@ -1396,7 +1412,6 @@ cards:
                       </div>
                     </div>`;
                 ]]]
-
           - type: custom:button-card
             entity: sensor.ev9_ev_battery_level
             triggers_update:
@@ -1419,7 +1434,10 @@ cards:
                     type: vertical-stack
                     cards:
                       - type: markdown
-                        content: Set when the car should be ready. Climate starts **lead minutes** before departure. If plugged into NACS, charging is timed to hit the limit by departure.
+                        content: >-
+                          Set when the car should be ready. Climate starts
+                          **lead minutes** before departure. If plugged into
+                          NACS, charging is timed to hit the limit by departure.
                       - type: entities
                         title: Departure Settings
                         entities:
@@ -1431,9 +1449,18 @@ cards:
                           - input_number.ev9_departure_buffer
             styles:
               card:
-                - background: "[[[ return states['input_boolean.ev9_departure_enabled']?.state === 'on' ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(10, 20, 25, 0.95) 100%)' : 'rgba(255, 255, 255, 0.035)'; ]]]"
+                - background: >-
+                    [[[ return
+                    states['input_boolean.ev9_departure_enabled']?.state ===
+                    'on' ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%,
+                    rgba(10, 20, 25, 0.95) 100%)' : 'rgba(255, 255, 255,
+                    0.035)'; ]]]
                 - border-radius: 18px
-                - border: "[[[ return states['input_boolean.ev9_departure_enabled']?.state === 'on' ? '1px solid rgba(34, 197, 94, 0.45)' : '1px solid rgba(255, 255, 255, 0.07)'; ]]]"
+                - border: >-
+                    [[[ return
+                    states['input_boolean.ev9_departure_enabled']?.state ===
+                    'on' ? '1px solid rgba(34, 197, 94, 0.45)' : '1px solid
+                    rgba(255, 255, 255, 0.07)'; ]]]
                 - padding: 11px 14px
               grid:
                 - grid-template-areas: '"c"'
